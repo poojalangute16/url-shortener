@@ -1,5 +1,6 @@
 package com.urlshortener.repositories;
 
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -37,6 +38,10 @@ public class InMemoryUrlRepository {
 
     public Optional<ShortenedUrl> findByShortCode(String shortCode) {
         return Optional.ofNullable(byShortCode.get(shortCode));
+    }
+
+    public Collection<ShortenedUrl> findAll() {
+        return byShortCode.values();
     }
 
 }

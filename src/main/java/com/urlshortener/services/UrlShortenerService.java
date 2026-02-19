@@ -2,8 +2,11 @@ package com.urlshortener.services;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -116,6 +119,26 @@ public class UrlShortenerService {
         return urlRepository.findByShortCode(shortCode)
                 .map(ShortenedUrl::getOriginalUrl)
                 .orElseThrow(() -> new NoSuchElementException("Short code not found: " + shortCode));
+    }
+
+    /**
+     * Returns the top N domains by number of URLs shortened.
+     *
+     * @param topN how many results to return
+     * @return ordered map of domain -> count, highest count first
+     */
+    public LinkedHashMap<String, Long> getTopDomains(int topN) {
+        return urlRepository.findAll().stream()
+                .collect(Collectors.groupingBy(ShortenedUrl::getDomain, Collectors.counting()))
+                .entrySet().stream()
+                .sorted(Map.Entry.<String, Long>comparingByValue().reversed())
+                .limit(topN)
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        Map.Entry::getValue,
+                        (e1, e2) -> e1,
+                        LinkedHashMap::new
+                ));
     }
 
 }

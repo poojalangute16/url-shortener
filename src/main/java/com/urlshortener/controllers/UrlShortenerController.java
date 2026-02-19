@@ -2,6 +2,7 @@ package com.urlshortener.controllers;
 
 
 import java.net.URI;
+import java.util.LinkedHashMap;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -39,6 +40,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 @Tag(name = "URL Shortener", description = "Shorten URLs, resolve short codes, and view domain metrics")
 public class UrlShortenerController {
      private final UrlShortenerService urlShortenerService;
+     private static final int TOP_DOMAINS_COUNT = 3;
 
        public UrlShortenerController(UrlShortenerService urlShortenerService) {
         this.urlShortenerService = urlShortenerService;
@@ -151,6 +153,55 @@ public class UrlShortenerController {
         return new ResponseEntity<>(headers, HttpStatus.FOUND);
     }
 
+     // -----------------------------------------------------------------------
+    // GET /metrics/top-domains
+    // -----------------------------------------------------------------------
 
+    @Operation(
+            summary = "Top 3 most-shortened domains",
+            description = """
+                    Returns the top 3 domains by total number of URLs shortened, ordered by count descending.
+                    
+                    `www.` is stripped when grouping domains, so `www.youtube.com` and `youtube.com`
+                    are counted together under `youtube.com`.
+                    
+                    If fewer than 3 distinct domains have been shortened, only those are returned.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Top domains returned successfully",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(
+                                    type = "object",
+                                    description = "Map of domain name to shortened URL count, ordered highest first",
+                                    example = """
+                                            {
+                                              "udemy.com": 6,
+                                              "youtube.com": 4,
+                                              "wikipedia.org": 2
+                                            }
+                                            """
+                            ),
+                            examples = @ExampleObject(
+                                    name = "Top 3 domains",
+                                    value = """
+                                            {
+                                              "udemy.com": 6,
+                                              "youtube.com": 4,
+                                              "wikipedia.org": 2
+                                            }
+                                            """
+                            )
+                    )
+            )
+    })
+    @GetMapping("/metrics/top-domains")
+    public ResponseEntity<LinkedHashMap<String, Long>> getTopDomains() {
+        LinkedHashMap<String, Long> topDomains = urlShortenerService.getTopDomains(TOP_DOMAINS_COUNT);
+        return ResponseEntity.ok(topDomains);
+    }
 
 }
