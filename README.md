@@ -66,8 +66,7 @@ Make sure the following are installed before running the project:
 ## Getting the Code
 
 ```bash
-git clone https://github.com/<your-username>/url-shortener.git
-cd url-shortener
+https://github.com/poojalangute16/url-shortener.git
 ```
 
 ---
