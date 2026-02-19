@@ -1,6 +1,7 @@
 package com.urlshortener.repositories;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.stereotype.Repository;
@@ -24,4 +25,13 @@ public class InMemoryUrlRepository {
         byShortCode.put(shortenedUrl.getShortCode(), shortenedUrl);
         byOriginalUrl.put(shortenedUrl.getOriginalUrl(), shortenedUrl);
     }
+
+    public Optional<ShortenedUrl> findByOriginalUrl(String originalUrl) {
+        return Optional.ofNullable(byOriginalUrl.get(originalUrl));
+    }
+
+      public boolean existsByShortCode(String shortCode) {
+        return byShortCode.containsKey(shortCode);
+    }
+
 }
