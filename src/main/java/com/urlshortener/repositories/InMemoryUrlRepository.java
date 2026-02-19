@@ -30,8 +30,13 @@ public class InMemoryUrlRepository {
         return Optional.ofNullable(byOriginalUrl.get(originalUrl));
     }
 
-      public boolean existsByShortCode(String shortCode) {
+    public boolean existsByShortCode(String shortCode) {
         return byShortCode.containsKey(shortCode);
+    }
+
+
+    public Optional<ShortenedUrl> findByShortCode(String shortCode) {
+        return Optional.ofNullable(byShortCode.get(shortCode));
     }
 
 }

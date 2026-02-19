@@ -2,6 +2,7 @@ package com.urlshortener.services;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.NoSuchElementException;
 import java.util.Random;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -102,4 +103,19 @@ public class UrlShortenerService {
             throw new IllegalArgumentException("Malformed URL: " + url, e);
         }
     }
+
+
+    /**
+     * Resolves a short code back to the original URL.
+     *
+     * @param shortCode the 7-character short code
+     * @return the original URL
+     * @throws NoSuchElementException if the short code is not found
+     */
+    public String resolve(String shortCode) {
+        return urlRepository.findByShortCode(shortCode)
+                .map(ShortenedUrl::getOriginalUrl)
+                .orElseThrow(() -> new NoSuchElementException("Short code not found: " + shortCode));
+    }
+
 }

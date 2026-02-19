@@ -1,9 +1,14 @@
 package com.urlshortener.controllers;
 
 
+import java.net.URI;
+
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,6 +18,8 @@ import com.urlshortener.controllers.Response.ShortenResponse;
 import com.urlshortener.services.UrlShortenerService;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -96,6 +103,54 @@ public class UrlShortenerController {
         ShortenResponse response = new ShortenResponse(request.getUrl(), shortUrl);
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
+
+    // -----------------------------------------------------------------------
+    // GET /{shortCode}
+    // -----------------------------------------------------------------------
+
+    @Operation(
+            summary = "Redirect to original URL",
+            description = """
+                    Resolves a short code and redirects the caller to the original URL via HTTP 302.
+                    
+                    Browsers follow this redirect automatically. When using curl, pass `-L` to follow it.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "302",
+                    description = "Redirect to the original URL",
+                    headers = @Header(
+                            name = "Location",
+                            description = "The original URL to redirect to",
+                            schema = @Schema(type = "string", format = "uri",
+                                    example = "https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Short code not found",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN_VALUE,
+                            examples = @ExampleObject(value = "Short code not found: abc1234")
+                    )
+            )
+    })
+    @GetMapping("/{shortCode}")
+    public ResponseEntity<Void> redirect(
+            @Parameter(
+                    description = "The 7-character short code generated when the URL was shortened",
+                    example = "aB3cD4e",
+                    required = true
+            )
+            @PathVariable String shortCode) {
+
+        String originalUrl = urlShortenerService.resolve(shortCode);
+        HttpHeaders headers = new HttpHeaders();
+        headers.setLocation(URI.create(originalUrl));
+        return new ResponseEntity<>(headers, HttpStatus.FOUND);
+    }
+
 
 
 }
